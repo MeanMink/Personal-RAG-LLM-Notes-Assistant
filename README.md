@@ -18,14 +18,16 @@ All locally, using **Ollama** (for embeddings + LLM) and **LlamaIndex** (for chu
 
 ## 📂 Repo Structure
 
+You'd have to create your own notes/, storage/ folder and config.yaml file
+
 ```text
 notes-rag-assistant/
 ├── config.yaml
-├── notes/           ← Put your Obsidian `.md` files here
-├── storage/         ← Holds embedding indices (auto-generated; add to `.gitignore`)
+├── notes/           ← Put your (Preferably Obsidian) `.md` files here (But anything works as long as its .md)
+├── storage/         ← Holds embedding indices 
 └── src/
-    ├── index_notes.py    ← Build or update the vector store
-    └── query_notes.py    ← Ask questions using the RAG engine
+    ├── indexer.py    ← Build or update the vector store
+    └── cli.py    ← Ask questions using the RAG engine
 ```
 
 The key idea:
@@ -56,12 +58,12 @@ response_mode: "compact"
 | `notes_folder`     | Path with your `.md` files (recursively). If empty, nothing gets indexed.                                                                                                                                                                                                       |
 | `storage_folder`   | Directory where LlamaIndex saves the vector store. Usually permanent.                                                                                                                                                                                                           |
 | `ollama_url`       | Defaults to `http://localhost:11434`—Ollama’s default REST API endpoint.                                                                                                                                                                                                        |
-| `embed_model`      | Embedding model name (via Ollama). We recommend `"nomic-embed-text"` for great semantic quality and long-context encoding, outperforming OpenAI's `text-embedding-ada-002` especially on longer inputs ([LlamaIndex][1], [rocm.docs.amd.com][2], [LlamaIndex][3], [Ollama][4]). |
-| `llm_model`        | LLM to run locally via Ollama—`"phi3:mini-4k"` is a lightweight and efficient \~3 B parameter model with a 4K context window, excellent for local use ([Ollama][5], [Ollama][6]).                                                                                               |
-| `chunk_size`       | Max tokens per chunk: 512 is smaller than LlamaIndex’s default (1024) and yields finer-grained semantic retrieval, with better precision on note-like content ([LlamaIndex][7], [LlamaIndex][8]).                                                                               |
+| `embed_model`      | Embedding model name (via Ollama). We recommend `"nomic-embed-text"` for great semantic quality and long-context encoding, outperforming OpenAI's `text-embedding-ada-002` especially on longer inputs. |
+| `llm_model`        | LLM to run locally via Ollama—`"phi3:mini-4k"` is a lightweight and efficient \~3 B parameter model with a 4K context window, excellent for local use.                                                                                               |
+| `chunk_size`       | Max tokens per chunk: 512 is smaller than LlamaIndex’s default (1024) and yields finer-grained semantic retrieval, with better precision on note-like content.                                                                               |
 | `chunk_overlap`    | How many tokens overlap between adjacent chunks (50 here instead of the default 20). This ensures continuity across splits—even if a thought spans chunk boundaries.                                                                                                            |
-| `similarity_top_k` | Number of top similar chunks returned for each query. `4` is a sweet spot if chunks are smaller—gives enough context without overwhelming the model.                                                                                                                            |
-| `response_mode`    | LlamaIndex generates answers by “stitching” retrieved chunks. `"compact"` is lean and to-the-point. Other modes like `"refine"` or `"tree_summarize"` give longer, thought-out responses.                                                                                       |
+| `similarity_top_k` | Number of top similar chunks returned for each query. `4` is a sweet spot if chunks are smaller—gives enough context without overwhelming the model, tweak as you like, but always rebuild the index.                                                                                                                            |
+| `response_mode`    | LlamaIndex generates answers by “stitching” retrieved chunks. `"compact"` is lean and to-the-point. Other modes like `"refine"` or `"tree_summarize"` give longer, thought-out responses, tweak as you like.                                                                                       |
 
 ---
 
@@ -80,17 +82,17 @@ response_mode: "compact"
 
 ---
 
-## 🛠️ Quick Start
+## 🛠️ Quick Start (Create a virtual env if you'd like)
 
 1. **Clone the repo** and `cd` into it.
 
 2. **Install the dependencies**:
 
    ```bash
-   python3 -m pip install llama-index llama-index-embeddings-ollama llama-index-llms-ollama ollama
+   pip install -r requirements.txt
    ```
 
-3. **Set up Ollama**:
+3. **Set up Ollama** (Download Ollama first):
 
    ```bash
    ollama server start
@@ -103,13 +105,13 @@ response_mode: "compact"
 5. **Build the index**:
 
    ```bash
-   python src/index_notes.py --config config.yaml
+   python -m src.indexer
    ```
 
 6. **Ask a question**:
 
    ```bash
-   python src/query_notes.py --config config.yaml --question "Where did I outline the research plan?"
+   python -m src.cli -q QUESTION
    ```
 
 ---
@@ -119,7 +121,7 @@ response_mode: "compact"
 Add, edit, or remove Markdown files in `notes/` and re-run:
 
 ```bash
-python src/index_notes.py --config config.yaml --refresh
+python -m src.cli -r
 ```
 
 Only changed files will be re-indexed, so it’s fast too.
@@ -145,4 +147,5 @@ This gives you full control, offline functionality, and a way to intelligently *
 * Ask natural-language questions via `cli.py` and get answers grounded in your own writing
 
 Feel free to tweak chunk parameters, embedding/LMM models, or respond with interactive UI. Fork, pull requests, feedback—I’d love to see what you build with this.
+
 
