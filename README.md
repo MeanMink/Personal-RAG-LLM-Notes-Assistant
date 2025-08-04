@@ -6,6 +6,17 @@ Your **second brain** over your personal Obsidian-style notes. Use a local LLM v
 
 ---
 
+## 💡 Why I Built This
+
+* I *write a lot* of notes—ideas, essays, planning documents, especially for my Master's Degree…
+* Keyword search is okay, but misses the **meaning connections**
+* I kept forgetting what I *already wrote*: “Was that idea in project X or my reading notes?”
+* → So I built a **local, semantic search + answer engine** over my actual words
+
+This gives you full control, offline functionality, and a way to intelligently *ask your past self* what you thought about something.
+
+---
+
 ## 🚀 What It Does
 
 * 🤖 **Builds a semantic index** of your `*.md` notes
@@ -128,16 +139,6 @@ Only changed files will be re-indexed, so it’s fast too.
 
 ---
 
-## 💡 Why I Built This
-
-* I *write a lot* of notes—ideas, essays, planning documents…
-* Keyword search is okay, but misses the **meaning connections**
-* I kept forgetting what I *already wrote*: “Was that idea in project X or my reading notes?”
-* → So I built a **local, semantic search + answer engine** over my actual words
-
-This gives you full control, offline functionality, and a way to intelligently *ask your past self* what you thought about something.
-
----
 
 ## ✅ TL;DR
 
@@ -147,5 +148,6 @@ This gives you full control, offline functionality, and a way to intelligently *
 * Ask natural-language questions via `cli.py` and get answers grounded in your own writing
 
 Feel free to tweak chunk parameters, embedding/LMM models, or respond with interactive UI. Fork, pull requests, feedback—I’d love to see what you build with this.
+
 
 
