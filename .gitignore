@@ -1,0 +1,43 @@
+# Byte‑compiled / optimized files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual envs
+venv/
+env/
+.venv/
+ENV/
+
+# Build / packaging
+build/
+dist/
+*.egg-info/
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+
+# Notebook checkpoints
+.ipynb_checkpoints/
+
+# Coverage / test caches
+htmlcov/
+.coverage
+.coverage.*
+.pytest_cache/
+.cache/
+
+# LlamaIndex / embeddings storage data
+storage/
+notes/
+
+# Local config with secrets
+config.yaml
+
+# Optionally ignore the real web app if private
+web_app.py
+
+# Logs, temporary files
+*.log
