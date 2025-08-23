@@ -1,4 +1,4 @@
-Here's how it all works -- majority of it written by ChatGPT :)))) --- but tweaked and fact-checked by me of course!!!
+Here's how it all works 
 
 # 🧠 Notes RAG Assistant
 
@@ -148,6 +148,7 @@ Only changed files will be re-indexed, so it’s fast too.
 * Ask natural-language questions via `cli.py` and get answers grounded in your own writing
 
 Feel free to tweak chunk parameters, embedding/LMM models, or respond with interactive UI. Fork, pull requests, feedback—I’d love to see what you build with this.
+
 
 
 
