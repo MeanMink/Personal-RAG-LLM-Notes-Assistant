@@ -1,56 +1,51 @@
-Here's how it all works 
+# Notes RAG Assistant
 
-# 🧠 Notes RAG Assistant
-
-Your **second brain** over your personal Obsidian-style notes. Use a local LLM via \[Ollama] with \[LlamaIndex] to semantically search, connect, and *understand* your scattered Markdown notes—no more lost insights.
+A local semantic search engine for your Markdown notes. Built this because I got tired of forgetting what I wrote and where I wrote it.
 
 ---
 
-## 💡 Why I Built This
+## Why This Exists
 
-* I *write a lot* of notes—ideas, essays, planning documents, especially for my Master's Degree…
-* Keyword search is okay, but misses the **meaning connections**
-* I kept forgetting what I *already wrote*: “Was that idea in project X or my reading notes?”
-* → So I built a **local, semantic search + answer engine** over my actual words
+I take a lot of notes—project ideas, research, Master's degree work, random thoughts at 2am. The problem? Finding anything later was a nightmare. Keyword search helps, but it misses the point when I can't remember the exact words I used.
 
-This gives you full control, offline functionality, and a way to intelligently *ask your past self* what you thought about something.
+So I built this: a way to ask questions about my notes and actually get useful answers. Everything runs locally with Ollama, so your notes stay private.
 
 ---
 
-## 🚀 What It Does
+## What It Does
 
-* 🤖 **Builds a semantic index** of your `*.md` notes
-* 🔍 **Performs similarity-based search** (not just keyword)
-* 💡 **Synthesizes answers** with your own writing as context
+- Indexes all your `.md` files with semantic embeddings
+- Lets you search by *meaning*, not just keywords
+- Generates answers using your own notes as context
+- Works completely offline
 
-All locally, using **Ollama** (for embeddings + LLM) and **LlamaIndex** (for chunking, embedding, retrieving).
+Think of it as Ctrl+F but it actually understands what you're looking for.
 
 ---
 
-## 📂 Repo Structure
-
-You'd have to create your own notes/, storage/ folder and config.yaml file
+## How It Works
 
 ```text
 notes-rag-assistant/
-├── config.yaml
-├── notes/           ← Put your (Preferably Obsidian) `.md` files here (But anything works as long as its .md)
-├── storage/         ← Holds embedding indices 
+├── config.yaml       # Settings (models, paths, chunking params)
+├── notes/            # Your .md files go here
+├── storage/          # Vector embeddings stored here
 └── src/
-    ├── indexer.py    ← Build or update the vector store
-    └── cli.py    ← Ask questions using the RAG engine
+    ├── indexer.py    # Builds the search index
+    └── cli.py        # Query interface
 ```
 
-The key idea:
-
-* `notes/` = your personal Markdown files
-* `storage/` = where processed vectors and metadata are saved
-* `config.yaml` = central configuration (paths, model names, chunking, etc.)
-* `src/` = indexing and querying scripts you run directly
+The basic flow:
+1. Your notes get split into chunks (~512 tokens each)
+2. Each chunk becomes a vector embedding via `nomic-embed-text`
+3. When you ask a question, it finds the most relevant chunks
+4. A local LLM (`phi3:mini-4k`) reads those chunks and answers
 
 ---
 
-## ⚙️ `config.yaml`
+## Configuration
+
+Here's what the `config.yaml` looks like:
 
 ```yaml
 notes_folder: "notes/"
@@ -64,91 +59,54 @@ similarity_top_k: 4
 response_mode: "compact"
 ```
 
-| Config Key         | Description                                                                                                                                                                                                                                                                     |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `notes_folder`     | Path with your `.md` files (recursively). If empty, nothing gets indexed.                                                                                                                                                                                                       |
-| `storage_folder`   | Directory where LlamaIndex saves the vector store. Usually permanent.                                                                                                                                                                                                           |
-| `ollama_url`       | Defaults to `http://localhost:11434`—Ollama’s default REST API endpoint.                                                                                                                                                                                                        |
-| `embed_model`      | Embedding model name (via Ollama). We recommend `"nomic-embed-text"` for great semantic quality and long-context encoding, outperforming OpenAI's `text-embedding-ada-002` especially on longer inputs. |
-| `llm_model`        | LLM to run locally via Ollama—`"phi3:mini-4k"` is a lightweight and efficient \~3 B parameter model with a 4K context window, excellent for local use.                                                                                               |
-| `chunk_size`       | Max tokens per chunk: 512 is smaller than LlamaIndex’s default (1024) and yields finer-grained semantic retrieval, with better precision on note-like content.                                                                               |
-| `chunk_overlap`    | How many tokens overlap between adjacent chunks (50 here instead of the default 20). This ensures continuity across splits—even if a thought spans chunk boundaries.                                                                                                            |
-| `similarity_top_k` | Number of top similar chunks returned for each query. `4` is a sweet spot if chunks are smaller—gives enough context without overwhelming the model, tweak as you like, but always rebuild the index.                                                                                                                            |
-| `response_mode`    | LlamaIndex generates answers by “stitching” retrieved chunks. `"compact"` is lean and to-the-point. Other modes like `"refine"` or `"tree_summarize"` give longer, thought-out responses, tweak as you like.                                                                                       |
+**Key settings:**
+- `embed_model`: I'm using `nomic-embed-text` because it handles longer text better than OpenAI's ada-002
+- `llm_model`: `phi3:mini-4k` is lightweight enough to run locally without melting your laptop
+- `chunk_size: 512`: Smaller chunks = more precise retrieval. Default is 1024 but I found 512 works better for note-style content
+- `chunk_overlap: 50`: Prevents thoughts from getting cut off mid-sentence
+- `similarity_top_k: 4`: Returns 4 relevant chunks per query—enough context without noise
 
 ---
 
-## 🧠 What "Indexing" Means (Simple Version)
+## Setup
 
-1. **Chunking**: each Markdown file is broken into \~512-token segments (with overlap), so you can embed them effectively.
-2. **Embedding**: every chunk is converted into a high-dimensional vector using `nomic‑embed‑text`.
-3. **Storing**: these embeddings (plus metadata & pointers to your raw Markdown) get saved under `storage/`.
-4. **Querying**: when you ask a question:
+1. **Clone this repo**
 
-   * the question is embedded the same way,
-   * LlamaIndex finds the top‑K most similar chunks by cosine similarity,
-   * your local LLM (`phi3:mini‑4k`) uses those retrieved chunks as context to generate a meaningful, semantically-informed answer.
-
-👉 This leverages meaning, context, and recall—so even if you don't remember which file or filename you wrote something in, the system finds it for you.
-
----
-
-## 🛠️ Quick Start (Create a virtual env if you'd like)
-
-1. **Clone the repo** and `cd` into it.
-
-2. **Install the dependencies**:
-
+2. **Install dependencies:**
    ```bash
    pip install -r requirements.txt
    ```
 
-3. **Set up Ollama** (Download Ollama first):
-
+3. **Get Ollama running:**
    ```bash
    ollama server start
    ollama pull nomic-embed-text
    ollama pull phi3:mini-4k
    ```
 
-4. **Place your Obsidian `.md` files** into the `notes/` folder (you can symlink your vault).
+4. **Add your notes to the `notes/` folder**  
+   (Works great with Obsidian vaults—just symlink it)
 
-5. **Build the index**:
-
+5. **Build the index:**
    ```bash
    python -m src.indexer
    ```
 
-6. **Ask a question**:
-
+6. **Ask questions:**
    ```bash
-   python -m src.cli -q QUESTION
+   python -m src.cli -q "What did I write about X?"
    ```
 
 ---
 
-## ♻️ Updating Notes
+## Updating Your Notes
 
-Add, edit, or remove Markdown files in `notes/` and re-run:
+Added or changed some files? Just rebuild:
 
 ```bash
 python -m src.cli -r
 ```
 
-Only changed files will be re-indexed, so it’s fast too.
+It only re-indexes what changed, so it's fast.
 
 ---
-
-
-## ✅ TL;DR
-
-* Put your `.md` files into `notes/`
-* Configure paths, embedding and LLM models in `config.yaml`
-* Run `index_notes.py` to build semantic index under `storage/`
-* Ask natural-language questions via `cli.py` and get answers grounded in your own writing
-
-Feel free to tweak chunk parameters, embedding/LMM models, or respond with interactive UI. Fork, pull requests, feedback—I’d love to see what you build with this.
-
-
-
-
